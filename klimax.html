@@ -1,194 +1,21 @@
-<!DOCTYPE html>
-<html lang="hu">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Klimax Felmérés</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    min-height: 100vh;
-    background: linear-gradient(160deg, #f9f0eb 0%, #f5e6dc 40%, #ede0d4 100%);
-    font-family: 'Georgia', 'Times New Roman', serif;
-  }
-  a { color: #c8785a; text-decoration: none; }
-  a:hover { text-decoration: underline; }
+import { useState, useEffect } from "react";
 
-  /* Fade-in animáció */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .fade-up { animation: fadeUp 0.45s ease both; }
-
-  /* Progress bar */
-  .progress-bar {
-    height: 3px;
-    background: rgba(200,160,140,0.2);
-    border-radius: 2px;
-    margin-bottom: 32px;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #d4917a, #c07060);
-    border-radius: 2px;
-    transition: width 0.5s ease;
-  }
-
-  /* Kártya */
-  .card {
-    background: rgba(255,255,255,0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-radius: 28px;
-    padding: 48px 44px;
-    max-width: 600px;
-    width: 100%;
-    box-shadow: 0 8px 48px rgba(180,120,100,0.13);
-    border: 1px solid rgba(210,170,150,0.25);
-    position: relative;
-    z-index: 2;
-  }
-  @media (max-width: 640px) {
-    .card { padding: 32px 22px; }
-  }
-
-  /* Tipográfia */
-  .logo-text {
-    font-size: 11px; letter-spacing: 4px; color: #b08878;
-    text-transform: uppercase; text-align: center; margin-bottom: 8px;
-  }
-  .divider {
-    width: 40px; height: 1px;
-    background: linear-gradient(90deg, transparent, #c8a090, transparent);
-    margin: 0 auto 32px;
-  }
-  .section-label {
-    font-size: 11px; letter-spacing: 3px; color: #b08878;
-    text-transform: uppercase; margin-bottom: 16px; display: block;
-  }
-  .card-title {
-    font-size: 26px; color: #5c3a2e; font-weight: normal;
-    line-height: 1.4; margin-bottom: 10px; font-style: italic;
-  }
-  .card-subtitle {
-    font-size: 14px; color: #9a7060; line-height: 1.8; margin-bottom: 36px;
-  }
-  .question-text {
-    font-size: 18px; color: #5c3a2e; line-height: 1.6;
-    margin-bottom: 24px; font-style: italic;
-  }
-
-  /* Form elemek */
-  textarea, input[type=number], input[type=text] {
-    width: 100%;
-    padding: 14px 16px;
-    border: 1px solid rgba(200,160,140,0.4);
-    border-radius: 14px;
-    background: rgba(255,255,255,0.6);
-    font-size: 15px; color: #5c3a2e;
-    font-family: 'Georgia', serif;
-    outline: none; transition: border-color 0.2s;
-  }
-  textarea {
-    min-height: 110px; resize: vertical; line-height: 1.6;
-  }
-  textarea:focus, input:focus {
-    border-color: rgba(200,120,90,0.6);
-  }
-
-  /* Gomb */
-  .btn-primary {
-    margin-top: 28px; width: 100%; padding: 16px;
-    background: linear-gradient(135deg, #c8785a, #b06048);
-    color: white; border: none; border-radius: 50px;
-    font-size: 14px; letter-spacing: 2px; text-transform: uppercase;
-    cursor: pointer; font-family: 'Georgia', serif;
-    box-shadow: 0 4px 20px rgba(180,90,70,0.25);
-    transition: opacity 0.2s, transform 0.15s;
-  }
-  .btn-primary:hover:not(:disabled) { transform: translateY(-1px); opacity: 0.92; }
-  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
-
-  /* Badge */
-  .badge {
-    display: inline-block; padding: 4px 14px;
-    background: rgba(200,120,90,0.1); border-radius: 20px;
-    font-size: 11px; letter-spacing: 2px; color: #b08878;
-    text-transform: uppercase; margin-bottom: 18px;
-  }
-
-  /* Eredmény dobozok */
-  .ai-box {
-    font-size: 15px; color: #5c3a2e; line-height: 2;
-    background: rgba(250,240,235,0.7); padding: 22px;
-    border-radius: 16px; border: 1px solid rgba(200,160,140,0.2);
-    margin-bottom: 16px;
-  }
-  .kb-box {
-    font-size: 13px; color: #7a5545; line-height: 2;
-    background: rgba(240,228,220,0.5); padding: 18px 22px;
-    border-radius: 14px; border: 1px dashed rgba(200,150,120,0.35);
-    margin-bottom: 16px;
-  }
-  .kb-label {
-    font-size: 10px; letter-spacing: 3px; color: #b08878;
-    text-transform: uppercase; margin-bottom: 10px; display: block;
-  }
-  .bridge-box {
-    padding: 16px 20px;
-    border-left: 3px solid #c8785a;
-    background: rgba(200,120,90,0.06);
-    border-radius: 0 12px 12px 0;
-    font-size: 13px; color: #9a6050;
-    font-style: italic; line-height: 1.8; margin-bottom: 24px;
-  }
-  .refs-box {
-    margin-top: 8px; padding-top: 20px;
-    border-top: 1px solid rgba(200,160,140,0.25);
-  }
-  .refs-title {
-    font-size: 10px; letter-spacing: 3px; color: #b08878;
-    text-transform: uppercase; margin-bottom: 12px;
-  }
-  .ref-item {
-    font-size: 11px; color: #a07060; line-height: 1.9;
-    display: flex; gap: 6px; margin-bottom: 2px;
-  }
-  .ref-num { color: #c8785a; flex-shrink: 0; }
-
-  /* Loading */
-  .loading-wrap { text-align: center; padding: 30px 0; }
-  .loading-icon { font-size: 36px; margin-bottom: 20px; }
-  .loading-text { font-size: 18px; color: #8a5a4a; font-style: italic; }
-
-  /* Superscript hivatkozás */
-  sup a { font-size: 10px; color: #c8785a; font-style: normal; }
-</style>
-</head>
-<body>
-<div id="root"></div>
-
-<script type="text/babel">
-const { useState, useEffect, useRef } = React;
-
-// ── FORRÁSADATBÁZIS ──────────────────────────────────────────
+// ============================================================
+// FORRÁSADATBÁZIS – PubMed, NAMS, EMAS, klinikai RCT-k
+// ============================================================
 const REFS = {
   1:  { label: "PMC10242506 – Hőhullámok, vazomotoros mechanizmus (NCBI, 2023)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC10242506/" },
   2:  { label: "PMC10816958 – Menopauzális alvászavar, CBT-I (NCBI, 2024)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC10816958/" },
   3:  { label: "PMC12635657 – Hangulat, depresszió, BDNF a menopauzában (NCBI, 2025)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC12635657/" },
-  4:  { label: "NAMS 2020 – GSM állásfoglalás", url: "https://menopause.org/wp-content/uploads/default-document-library/2020-gsm-ps.pdf" },
+  4:  { label: "NAMS 2020 – GSM (Genitourináris szindróma) állásfoglalás", url: "https://menopause.org/wp-content/uploads/default-document-library/2020-gsm-ps.pdf" },
   5:  { label: "JOCD 2024 – Bőr- és hajváltozások menopauzában (Wiley)", url: "https://onlinelibrary.wiley.com/doi/10.1111/jocd.70393?af=R" },
-  6:  { label: "Medicine Today 2024 – Csontegészség, törésmegelőzés menopauzában", url: "https://endocrinology.medicinetoday.com.au/et/2024/may/feature-article/bone-health-during-menopause-assessment-and-fracture-prevention" },
+  6:  { label: "Medicine Today 2024 – Csontegészség és törésmegelőzés menopauzában", url: "https://endocrinology.medicinetoday.com.au/et/2024/may/feature-article/bone-health-during-menopause-assessment-and-fracture-prevention" },
   7:  { label: "PubMed 24219882 – MHT hatékonysága, NAMS/EMAS irányelv", url: "https://pubmed.ncbi.nlm.nih.gov/24219882/" },
   8:  { label: "PMC9862030 – Metabolikus változások, életmódi beavatkozások (NCBI, 2023)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC9862030/" },
-  9:  { label: "DovePress – Alvásproblémák a menopauzális átmenetben", url: "https://www.dovepress.com/sleep-problems-during-the-menopausal-transition-prevalence-impact-and--peer-reviewed-fulltext-article-NSS" },
+  9:  { label: "DovePress – Alvásproblémák a menopauzális átmenetben (prevalencia, hatás)", url: "https://www.dovepress.com/sleep-problems-during-the-menopausal-transition-prevalence-impact-and--peer-reviewed-fulltext-article-NSS" },
   10: { label: "PMC8009305 – MsFLASH vizsgálat: nem-hormonális kezelések (NCBI, 2021)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC8009305/" },
   11: { label: "PMC2903326 – SSRI/SNRI hőhullámra és hangulatra (NCBI)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC2903326/" },
+  12: { label: "PMC4333078 – MsFLASH RCT: escitalopram, jóga, aerob edzés (NCBI, 2015)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC4333078/" },
   13: { label: "PMC6697911 – Hőhullámok lefolyása, időtartama, prevalenciája (NCBI, 2019)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC6697911/" },
   14: { label: "PMC5747247 – CBT hőhullámokra és alvásra (NCBI, 2018)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC5747247/" },
   15: { label: "PMC6435413 – Akupunktúra és jóga RCT-k összesítése (NCBI, 2019)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC6435413/" },
@@ -196,256 +23,403 @@ const REFS = {
   19: { label: "JES 2025 – Ösztrogén, zsigeri zsír, inzulinrezisztencia (Oxford)", url: "https://academic.oup.com/jes/article/9/Supplement_1/bvaf149.1939/8299695" },
   20: { label: "ClinicalTrials NCT01178892 – Fizikai aktivitás és metabolizmus menopauzában", url: "https://clinicaltrials.gov/study/NCT01178892" },
   21: { label: "PMC4731298 – Tünetklaszterek, szorongás, fáradtság (NCBI, 2016)", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC4731298/" },
+  22: { label: "Tandfonline 2024 – Növényi kivonatok fáradtságra menopauzában", url: "https://www.tandfonline.com/doi/full/10.1080/09513590.2024.2334796" },
 };
 
-// ── TUDÁSBÁZIS ───────────────────────────────────────────────
-const KB = [
-  { keywords:["hőhullám","hohullam","höhullam","izzad","hőség","kipirulás","forróság","meleg","forró"], title:"Hőhullámok és izzadás", refs:[1,9,10,13,14], bridge:"A sejtek hőháztartásának sejtszintű szabályozása és a terahertz-tartomány kapcsolata egy izgalmas kutatási irány – erről hamarosan részletesebben is mesélünk.",
-    text:`A hőhullám a klimaxos nők 60–80%-ának jelent gondot,[13] és átlagosan 7 évig, de sokaknál 10–14 évig is fennáll.[13] Az ösztrogéncsökkenés a hypothalamus hőszabályozó zónáját szűkíti, így minimális hőmérséklet-változás is kipirulást és izzadást vált ki.[1] Ami kifejezetten klimaxos nőkkel végzett vizsgálatokban bizonyítottan enyhíti a tüneteket: a koffein és alkohol kerülése, hűvösebb hálószoba, és lassú légzőgyakorlatok – egy RCT-ben ez akár 40%-kal csökkentette az epizódok zavarásszintjét.[14] Nagyméretű MsFLASH klimax-vizsgálatban az SSRI-típusú gyógyszerek 40–60%-os tünetcsökkenést adtak.[10]` },
-  { keywords:["éjszaka","ejszaka","éjjel","felébred","veríték","éjszakai"], title:"Éjszakai hőhullámok", refs:[2,9,14], bridge:"A sejtszintű hőháztartás és a terahertz-frekvenciás terápia kapcsolatát jelenleg aktívan kutatják – erre a témára visszatérünk.",
-    text:`Az éjszakai hőhullámok ördögi kört hoznak létre klimaxos nőknél: rosszabb alvás → fokozott tünetérzékenység → több éjszakai epizód.[9] Menopauzás alvástudományi kutatások szerint a kognitív viselkedésterápia (CBT-I) az elsővonalbeli kezelés,[2] és egy MsFLASH RCT-ben kifejezetten a klimaxos éjszakai tünetek zavarásszintjét csökkentette szignifikánsan.[14] Hűvösebb hálószoba (18–20°C) és természetes anyagú ágynemű szintén mérhető javulást hozhat.[9]` },
-  { keywords:["arcpirosodás","pirosodik","arc ég","kipirul"], title:"Arcpirosodás", refs:[1,10,11], bridge:"A mikrocirkuláció sejtszintű javítása egy olyan terület, ahol az újgenerációs wellness-készülékek ígéretes eredményeket mutatnak.",
-    text:`Az arcpirosodás a menopauzális hőhullám egyik leggyakoribb megjelenési formája: a noradrenalin- és szerotoninrendszer ingadozása perifériás értágulatot okoz az arcon.[1] Klinikai adatok szerint az SSRI/SNRI-típusú szerek a kipirulás és hőhullám-epizódokat is 40–60%-kal csökkenthetik klimaxos nőknél.[11] A provokáló tényezők (fűszeres ételek, alkohol, forró italok, stressz) kerülése szintén ajánlott a menopauzás irányelvekben.[10]` },
-  { keywords:["hízás","hizas","súly","kilo","kilók","fogyni","elhízás","kg","testsúly","zsír","hasi"], title:"Súlygyarapodás és anyagcsere", refs:[8,19,20], bridge:"Az anyagcsere sejtszintű aktiválása – különösen a mitokondriális funkcióra ható módszerek – egy izgalmas irány, amiről hamarosan mesélünk.",
-    text:`A klimaxos súlygyarapodás valódi biológiai folyamat, nem akaraterő kérdése. Az ösztrogéncsökkenés az anyagcserét úgy változtatja meg, hogy a zsír a csípőről a has felé vándorol – a nők 50–70%-ánál megfigyelhető stabil étkezés mellett is.[8] Menopauzális nőkkel végzett vizsgálatok szerint a mediterrán típusú étrend és rezisztenciaedzés kombinációja csökkenti a zsigeri zsírt és javítja az inzulinérzékenységet.[19] Heti 150 perc mozgás + 2-3 erősítő edzés bizonyítottan a legjobb eredményt adja ebben a korban.[20]` },
-  { keywords:["anyagcsere","inzulin","vércukor","metabol","lassú","lassult"], title:"Lelassult anyagcsere", refs:[8,19,20], bridge:"A sejtek energiatermelési hatékonyságát célzó terápiák a metabolikus menopauzás egészség legfontosabb kutatási területévé váltak.",
-    text:`Az ösztrogéncsökkenés közvetlenül rontja az inzulinérzékenységet menopauzás nőknél – ugyanannyi étel több zsírt raktároz el, mint korábban.[19] Klinikai vizsgálatok szerint a rezisztenciaedzés hatékonyabb ebben a korban, mint az aerob edzés önmagában, mert növeli az izomtömeget és emeli az alapanyagcserét.[20] D-vitamin és magnézium pótlása szintén ajánlott, mert hiányuk rontja az inzulinérzékenységet.[8]` },
-  { keywords:["alvás","alvas","álmatlan","inszomnia","ébred","nem pihen","álom","felébredés","alvásprobléma"], title:"Alvászavar", refs:[2,9,17], bridge:"A mélyhullámú alvás és a sejtszintű regeneráció szoros összefüggéséről – és egy különleges megközelítésről – hamarosan részleteket osztunk meg.",
-    text:`A klimaxos nők 40–60%-a jelez alvászavart, és közel 26%-nál krónikus inszomnia alakul ki.[9] Hormonális változások, éjszakai hőhullámok és csökkent melatonin-szekréció állnak a háttérben.[2] A legjobb bizonyítékkal rendelkező kezelés klimaxos nőknél a kognitív viselkedésterápia inszomniára (CBT-I): vizsgálatokban 70–80%-os javulást ért el gyógyszer nélkül is.[2] Kisebb RCT-ben a fennel-valeriána kombináció szignifikánsan javította az alvásminőséget posztmenopauzális nőknél.[17]` },
-  { keywords:["fárad","farad","kimerült","energia","erőtlen","levert","agyköd","koncentrál","memória","brain fog"], title:"Fáradtság és energiahiány", refs:[2,8,21], bridge:"A sejtszintű energiatermelés (mitokondriális aktivitás) és a fáradtság összefüggése az a terület, ahol a terahertz-technológia eredményei különösen érdekesek.",
-    text:`A fáradtság a klimaxos tünetek egyik leggyakoribb eleme: alvászavar, hormonális változások, inzulinrezisztencia és emelkedett gyulladásos mediátorok együtt okozzák.[21] Első lépésként ajánlott a laborvizsgálat: pajzsmirigyfunkció, vas, B12, D-vitamin – ezek bármelyikének hiánya drámai fáradtságot okozhat menopauzás nőknél.[8] Rendszeres testmozgás (napi 20-30 perc séta is) klinikai vizsgálatokban bizonyítottan csökkenti a fáradtságot.[2]` },
-  { keywords:["hangulat","ideges","ingerlékenység","dühös","sírós","szorongás","félelem","pánik","nyugtalan"], title:"Hangulatingadozás és ingerlékenység", refs:[3,11,21], bridge:"Az idegrendszer sejtszintű kommunikációjának frekvenciaalapú modulációja friss és izgalmas kutatási terület – erről hamarosan hallani fogsz.",
-    text:`A menopauzális átmenet alatt a depressziós tünetek és szorongás kockázata 2–3-szorosra nő.[3] Az ösztrogén ingadozása közvetlenül befolyásolja a szerotonin-, noradrenalin- és dopaminrendszert – ez magyarázza a hirtelen érzelmi hullámokat. Ez nem jellemhiba, hanem biológia.[3] Ami klinikai vizsgálatokban hatékonynak bizonyult klimaxos nőknél: rendszeres mozgás, mindfulness, és szükség esetén SSRI/SNRI-k – amelyek egyidejűleg a hőhullámokat is csökkentik.[11]` },
-  { keywords:["depresszi","szomor","reménytelen","kedvetlen","örömtelen","búskomorság"], title:"Depressziós tünetek", refs:[3,21], bridge:"A hangulatszabályozás és a sejtek elektromos kommunikációja között feltárt összefüggések egészen új megközelítéseket nyitnak meg.",
-    text:`A perimenopauzális időszakban az agy hippocampusa közvetlenül érzékeny az ösztrogéncsökkenésre: klinikai adatok szerint a hippocampális volumen és a BDNF-jelátvitel is csökken.[3] Ha a tünetek tartósak, orvosi segítség indokolt. Ami önállóan is bizonyítottan sokat segít klimaxos nőknél: napi 30 perc aerob mozgás, omega-3 zsírsavak, és a szociális kapcsolatok ápolása.[21]` },
-  { keywords:["libidó","libido","szex","vágy","nem kívánom","párkapcsolat","intimitás","nemi vágy"], title:"Libidócsökkenés", refs:[4,7,21], bridge:"A perifériás keringés és szöveti regeneráció – amiről hamarosan szó lesz – a szexuális egészségre is közvetlen hatással van.",
-    text:`A libidócsökkenés hátterében egyszerre van jelen a hormonális változás, pszichológiai tényezők, és sokszor a hüvelyszárazság okozta fájdalom.[4] A NAMS állásfoglalása szerint a GSM kezelése önmagában javítja a szexuális életet.[4] Szexuálterápia és párterápia a pszichológiai réteget célozzák; egyes vizsgálatokban a transzdermális tesztoszteron is eredményes volt klimaxos nőknél.[21]` },
-  { keywords:["hüvely","huvely","szárazság","száraz","fájdalmas","éget","dyspareunia","hüvelyszárazság"], title:"Hüvelyszárazság (GSM)", refs:[4,7], bridge:"A nyálkahártya sejtszintű regenerációja és a szöveti vérátáramlás javítása egy olyan megközelítés, amiről hamarosan részleteket osztunk meg.",
-    text:`A hüvelyszárazság (GSM) a nők kb. 80%-ánál kimutatható 6 évvel a menopauza után, és kezeletlenül általában progresszív.[4] A NAMS állásfoglalása szerint lokális ösztrogénkrém az elsővonalbeli kezelés – minimális szisztémás hatással, de nagyon hatékony.[4] Hialuronsav-alapú hüvelyi hidratálók szintén bizonyítottan csökkentik a szárazságot és fájdalmat.[7]` },
-  { keywords:["hajhullás","hajhullas","haj hull","ritkuló haj","hajam"], title:"Hajhullás", refs:[5,6,8], bridge:"A hajhagymák mikrocirkulációjának javítása – amit az újabb terápiás készülékek céloznak – ígéretes irány a hajritkülás menopauzás kezelésében.",
-    text:`A menopauzális hajhullás az androgén/ösztrogén arány eltolódásából ered.[5] Vas, D-vitamin, B12, cink és fehérjebevitel hiánya drámaian fokozza a hajhullást klimaxos nőknél – laborvizsgálattal érdemes ellenőrizni.[6] Topikális minoxidil nőknél klinikai vizsgálatokban igazoltan lassítja a hajhullást és fokozza az újranövést.[5]` },
-  { keywords:["bőr","ráncosodás","ránc","petyhüdt","száraz bőr","rugalmasság"], title:"Bőrváltozások és ráncosodás", refs:[5,8], bridge:"A sejtek kollagéntermelési kapacitásának helyreállítása – különösen frekvenciaalapú stimulációval – egyre több bőrgyógyászati vizsgálatban jelenik meg.",
-    text:`A klimax után a bőr kollagéntartalma évente kb. 2%-kal csökken, a ceramidszint is esik – együtt okozva a szárazságot, petyhüdtséget és ráncok gyorsabb mélyülését.[5] Ami bizonyítottan segít: napi SPF50 fényvédelem (az UV a fő külső ok), ceramid-tartalmú hidratálók, és C-vitamin szérum.[5] Kollagén-peptid kiegészítők napi 10g adagban kisebb RCT-kben javítottak a bőrfeszességen 3 hónapos szedés után.[5]` },
-  { keywords:["öregszem","öregedés","öregség","korosodás","nőiesség"], title:"Az öregedés érzete", refs:[5,8,21], bridge:"A sejtszintű regeneráció és szövetek fiatalítása – ahogy azt a modern wellness-kutatások vizsgálják – egészen új lehetőségeket nyit meg.",
-    text:`Az öregedés érzete sokszor mélyebb identitásbeli változással jár – ez teljesen normális reakció.[21] Ami aktívan segít: rendszeres mozgás lassítja a biológiai öregedést (telomerhossz-vizsgálatok igazolják),[8] antioxidáns-gazdag étrend védi a sejteket a gyulladástól,[8] és a UV-védelem bizonyítottan a legfontosabb tényező a bőr kollagénjének megőrzéséhez.[5]` },
-  { keywords:["ízület","izulet","csont","osteopor","törés","merevség"], title:"Ízületi fájdalom és csontegészség", refs:[6,8,15], bridge:"A csontsejtek és kötőszöveti sejtek vibráció- és frekvenciarezonanciaválasza ígéretes kutatási irány – erről hamarosan részleteket osztunk meg.",
-    text:`Az ösztrogén csontprotektív hatásának elvesztése miatt 50 év feletti nők több mint 50%-ánál alakul ki osteopenia vagy osteoporosis.[6] Az EMAS és NAMS által elsővonalbeli prevencióként ajánlott klimaxos nőknél: napi 1000–1200 mg kalcium, 800–1000 NE D-vitamin, és rendszeres súlyterheléses mozgás.[6] Az omega-3 zsírsavak gyulladáscsökkentő hatása ízületi panaszoknál szintén igazolt.[15]` },
-  { keywords:["puffadás","vízvisszatartás","ödéma","dagad"], title:"Puffadás és vízvisszatartás", refs:[8,21], bridge:"A nyirokrendszer és a sejtek folyadékháztartása – amit a Ventum-típusú terápiák céloznak – közvetlen hatással van erre a panaszra.",
-    text:`A klimax körüli puffadás hátterében a progeszteron csökkenése áll – ez a hormon természetes vízhajtó hatású volt.[21] Ami segít: sóbevitel csökkentése, magnézium pótlása B6-vitaminnal kombinálva, és elegendő folyadékfogyasztás – paradox módon több ivás segít a vízvisszatartáson.[8]` },
+// ============================================================
+// TUDÁSBÁZIS
+// A [n] jelölők → superscript hivatkozások lesznek
+// ============================================================
+const knowledgeBase = [
+  {
+    keywords: ["hőhullám","hohullam","höhullam","izzad","hőség","kipirulás","láng","forróság","meleg","forró"],
+    category: "hőhullám", title: "Hőhullámok és izzadás", refs: [1,9,10,13,14],
+    response: `A hőhullám a klimaxos nők 60–80%-ának jelent gondot,[13] és átlagosan 7 évig, de sokaknál 10–14 évig is fennáll.[13] Az ösztrogéncsökkenés a hypothalamus hőszabályozó zónáját szűkíti, így már minimális hőmérséklet-változás is azonnali kipirulást és izzadást vált ki.[1] Ami kifejezetten klimaxos nőkkel végzett klinikai vizsgálatokban bizonyítottan enyhíti a tüneteket: a koffein és alkohol kerülése, a hűvösebb hálószoba, és a lassú, mély légzőgyakorlatok – ez utóbbi egy RCT-ben akár 40%-kal csökkentette az epizódok zavarásszintjét.[14] Nagyméretű MsFLASH klimax-vizsgálatban az SSRI-típusú gyógyszerek 40–60%-os tünetcsökkenést adtak.[10]`,
+    bridge: "A Cell Activator THZ-021 grafén fűtőeleme felhevítve természetes terahertz tartományú sugárzást bocsát ki – és a THz hullámok épp azzal a hypothalamikus hőszabályozó rendszerrel lépnek kölcsönhatásba, amelynek diszfunkciója a hőhullámokat okozza. Ez nem marketing, hanem fizikai törvényszerűség."
+  },
+  {
+    keywords: ["éjszaka","ejszaka","éjjel","felébred","felkelsz","veríték","éjszakai izzadás"],
+    category: "hőhullám", title: "Éjszakai hőhullámok", refs: [2,9,10,14],
+    response: `Az éjszakai hőhullámok ördögi kört hoznak létre klimaxos nőknél: rosszabb alvás → fokozott tünetérzékenység → több éjszakai epizód.[9] Menopauzával foglalkozó alvástudományi kutatások szerint a kognitív viselkedésterápia (CBT-I) az elsővonalbeli kezelés,[2] és egy MsFLASH RCT-ben kifejezetten a klimaxos éjszakai tünetek szubjektív zavarásszintjét csökkentette szignifikánsan.[14] Hűvösebb hálószoba (18–20°C) és természetes anyagú ágynemű szintén mérhető javulást hozhat.[9]`,
+    bridge: "A Wentong 1.0 talpkezelése kombinált FIR hőterápiával és reflexzóna-stimulációval aktiválja a paraszimpatikus idegrendszert – vizsgálatok szerint a talpFIR stimuláció szignifikánsan lerövidíti az elalvási latenciát a test termális szabályozásán keresztül. Épp az a mechanizmus, ami az éjszakai tüneteket enyhítheti."
+  },
+  {
+    keywords: ["arcpirosodás","pirosodik","arc ég","kipirul","kipirulás"],
+    category: "hőhullám", title: "Arcpirosodás", refs: [1,10,11],
+    response: `Az arcpirosodás a menopauzális hőhullám egyik leggyakoribb megjelenési formája: a noradrenalin- és szerotoninrendszer ingadozása perifériás értágulatot okoz az arcon.[1] Klinikai adatok szerint az SSRI/SNRI-típusú szerek nemcsak hangulatot javítanak, de a kipirulás és hőhullám-epizódokat is 40–60%-kal csökkenthetik klimaxos nőknél.[11] A provokáló tényezők (fűszeres ételek, alkohol, forró italok, stressz) kerülése szintén ajánlott a menopauzás irányelvekben.[10]`,
+    bridge: "A Cell Activator infravörös sugárzása bizonyítottan fokozza a nitrogén-monoxid (NO) felszabadulását az endotél sejtekből – az NO a legerősebb ismert endogén értágító, amely a mikrokeringést és az értónus szabályozását befolyásolja. Ez a mechanizmus az arc értágulati reakciójára is közvetlen hatással lehet."
+  },
+  {
+    keywords: ["hízás","hizas","súly","kilo","kilók","fogyni","fogyo","elhízás","elhizas","kg","testsúly","zsír","hasi","fogyás"],
+    category: "súly", title: "Súlygyarapodás és anyagcsere", refs: [8,19,20],
+    response: `A klimaxos súlygyarapodás valódi biológiai folyamat, nem akaraterő kérdése. Az ösztrogéncsökkenés az anyagcserét úgy változtatja meg, hogy a zsír a csípőről a has felé vándorol és az inzulinérzékenység romlik – a nők 50–70%-ánál megfigyelhető stabil étkezés mellett is.[8] Menopauzális nőkkel végzett vizsgálatok szerint a mediterrán típusú étrend és a rezisztenciaedzés kombinációja csökkenti a zsigeri zsírt és javítja az inzulinérzékenységet.[19] Heti 150 perc közepes intenzitású mozgás + 2-3 erősítő edzés bizonyítottan a legjobb eredményt adja ebben a korban.[20]`,
+    bridge: "A Cell Activator infravörös és THz komponense a mitokondriális légzésláncra hat – klinikai adatok szerint az infravörös stimuláció fokozza az ATP-termelést és a sejtszintű energiafelhasználást. Ez az a mechanizmus, ami a lassult anyagcsere sejtszintű aktiválásában szerepet játszhat."
+  },
+  {
+    keywords: ["anyagcsere","inzulin","vércukor","metabol","lassú","lassult"],
+    category: "súly", title: "Lelassult anyagcsere", refs: [8,19,20],
+    response: `Az ösztrogéncsökkenés közvetlenül rontja az inzulinérzékenységet menopauzás nőknél – ez azt jelenti, hogy ugyanannyi étel több zsírt raktároz el, mint korábban.[19] Klinikai vizsgálatok szerint a rezisztenciaedzés hatékonyabb ebben a korban, mint az aerob edzés önmagában, mert növeli az izomtömeget és emeli az alapanyagcserét.[20] D-vitamin és magnézium pótlása szintén ajánlott, mert hiányuk rontja az inzulinérzékenységet.[8]`,
+    bridge: "A Wentong 1.0 vörös fénye (630–660 nm) a citokróm-c-oxidáz enzimen keresztül közvetlenül stimulálja a mitokondriális légzési láncot – ez fokozott ATP-szintézist és javuló sejtszintű energiafelhasználást eredményez. Pontosan az a mechanizmus, amit a metabolikus lassulás kezelésében kutatnak."
+  },
+  {
+    keywords: ["alvás","alvas","álmatlan","almatlan","nem alszik","nem tud aludni","ébred","ebred","inszomnia","nem pihen","álom","felébredés","alvásprobléma"],
+    category: "alvás", title: "Alvászavar", refs: [2,9,17],
+    response: `A klimaxos nők 40–60%-a jelez alvászavart, és közel 26%-nál krónikus inszomnia alakul ki.[9] A háttérben hormonális változások, éjszakai hőhullámok, csökkent melatonin-szekréció és megváltozott cirkadián ritmus áll.[2] A legjobb bizonyítékkal rendelkező kezelés klimaxos nőknél a kognitív viselkedésterápia inszomniára (CBT-I): klinikai vizsgálatokban 70–80%-os javulást ért el gyógyszer nélkül is.[2] Kisebb RCT-ben a fennel-valeriána kombináció szignifikánsan javította az alvásminőséget posztmenopauzális nőknél.[17]`,
+    bridge: "A Wentong 1.0 talpkezelése FIR termoterápiát, talpstimulációt és negatív ionizációt kombinál – a talpFIR keringésjavító hatása és a reflexzónák paraszimpatikus aktiválása épp azokat a mechanizmusokat célozza, amelyek a klimaxos alvásminőség javításában szerepet játszanak."
+  },
+  {
+    keywords: ["fárad","farad","kimerült","kimerultseg","energia","erőtlen","erőtlenség","levert","agyköd","koncentrál","memória","felejtés","brain fog","figyelm"],
+    category: "fáradtság", title: "Fáradtság és energiahiány", refs: [2,8,21],
+    response: `A fáradtság a klimaxos tünetek egyik leggyakoribb eleme, és rendszerint több faktor együttesére vezethető vissza: alvászavar, hormonális változások, inzulinrezisztencia és emelkedett gyulladásos mediátorok.[21] Első lépésként ajánlott a laborvizsgálat: pajzsmirigyfunkció, vas, B12, D-vitamin és vércukor – ezek bármelyikének hiánya drámai fáradtságot okozhat, és menopauzás nőknél különösen figyelendő.[8] Rendszeres testmozgás (napi 20-30 perc séta is) klinikai vizsgálatokban bizonyítottan csökkenti a fáradtságot klimaxos nőknél.[2]`,
+    bridge: "A Cell Activator THz és infravörös komponense a mitokondriális citokróm-c-oxidáz enzimen keresztül fokozza az ATP-termelést – ez az a sejtszintű energiaút, amelynek csökkent működése a klimaxos fáradtság egyik biológiai alapja. A Nano Letters 2023-as közleménye igazolta a grafén THz emissziójának valóságát."
+  },
+  {
+    keywords: ["hangulat","ideges","ingerlékenység","ingerlékeny","dühös","sírós","érzékeny","érzelmi","szorongás","félelem","pánik","nyugtalan","hangulatingadozás"],
+    category: "hangulat", title: "Hangulatingadozás és ingerlékenység", refs: [3,11,21],
+    response: `A menopauzális átmenet alatt a depressziós tünetek és szorongás kockázata 2–3-szorosra nő a premenopauzás állapothoz képest.[3] Az ösztrogén ingadozása közvetlenül befolyásolja a szerotonin-, noradrenalin- és dopaminrendszert – ez magyarázza a hirtelen érzelmi hullámokat, és ez nem jellemhiba, hanem biológia.[3] Ami klinikai vizsgálatokban hatékonynak bizonyult klimaxos nőknél: rendszeres mozgás, mindfulness-alapú stresszcsökkentés, és szükség esetén SSRI/SNRI-k – amelyek egyidejűleg a hőhullámokat is csökkentik.[11]`,
+    bridge: "A Wentong 1.0 negatív ionizátora olyan légköri ionkoncentrációt hoz létre, amelyről vizsgálatok összefüggést mutattak a szerotonin metabolizmussal – és a szerotonin az a neurotranszmitter, amelynek egyensúlya közvetlenül meghatározza a klimaxos hangulatingadozást. Ez egy ritkán említett, de dokumentált kapcsolat."
+  },
+  {
+    keywords: ["depresszi","szomor","reménytelen","kedvetlen","nem örül","örömtelen","búskomorság"],
+    category: "hangulat", title: "Depressziós tünetek", refs: [3,21],
+    response: `A perimenopauzális időszakban az agy hippocampusa közvetlenül érzékeny az ösztrogéncsökkenésre: klinikai adatok szerint a hippocampális volumen és a BDNF-jelátvitel is csökken,[3] ami magyarázza a szomorúságot, memóriaproblémákat és az élvezeti képesség csökkenését. Ha a tünetek tartósak, orvosi segítség indokolt. Ami önállóan is bizonyítottan sokat segít klimaxos nőknél: napi 30 perc aerob mozgás, omega-3 zsírsavak, és a szociális kapcsolatok ápolása.[21]`,
+    bridge: "A fotobiomoduláció (Wentong 1.0 vörös fény, 630–660 nm) preklinkiai adatok szerint befolyásolja a neurotrofin-jelátvitelt – és a BDNF az a növekedési faktor, amelynek csökkenése a klimaxos depresszív tünetekkel szoros összefüggést mutat. A Journal of Photochemistry vizsgálataiban a vörös fény gyulladásos citokinek szintjét is mérsékelte."
+  },
+  {
+    keywords: ["libidó","libido","szex","vágy","nem kívánom","nem kivanom","párkapcsolat","intimitás","nemi vágy"],
+    category: "libidó", title: "Libidócsökkenés", refs: [4,7,21],
+    response: `A libidócsökkenés a klimaxos nők igen nagy részét érinti, és hátterében egyszerre van jelen a hormonális változás (ösztrogén és androgén csökkenés), pszichológiai tényezők, és sokszor a hüvelyszárazság okozta fájdalom.[4] A NAMS állásfoglalása szerint a GSM kezelése önmagában javítja a szexuális életet,[4] és a NAMS/EMAS által is ajánlott hormonkezelés szelektív esetekben hatékony.[7] Szexuálterápia és párterápia a pszichológiai réteget célozzák, és egyes vizsgálatokban a transzdermális tesztoszteron is eredményes volt.[21]`,
+    bridge: "A Wentong 1.0 FIR komponense az endotél NO-felszabadítás révén fokozza a perifériás keringést – ami a kismedencei vérátáramlásra is hat. A talpstimulációs reflexzónák aktiválása emellett β-endorfin és szerotonin felszabadulást vált ki, amelyek a szexuális egészségre is közvetlen hatással vannak."
+  },
+  {
+    keywords: ["hüvely","huvely","szárazság","száraz","fájas","fájdalmas","éget","égő","dyspareunia","húgyút","hüvelyszárazság"],
+    category: "libidó", title: "Hüvelyszárazság (GSM)", refs: [4,7],
+    response: `A hüvelyszárazság (GSM – genitourináris szindróma) a nők kb. 80%-ánál kimutatható 6 évvel a menopauza után, és ellentétben a hőhullámokkal, kezeletlenül általában progresszív.[4] A NAMS állásfoglalása szerint lokális ösztrogénkrém az elsővonalbeli kezelés – minimális szisztémás hatással, de nagyon hatékony.[4] Hialuronsav-alapú hüvelyi hidratálók szintén bizonyítottan csökkentik a szárazságot és fájdalmat, és a NAMS/EMAS is ajánlja.[7]`,
+    bridge: "A Cell Activator infravörös és THz sugárzása fokozza a mikrokeringést és a szöveti regenerációt – a PMC 2021-es áttekintése dokumentálta, hogy a THz expozíció befolyásolja a sejthártya permeabilitását és az ioncsatornák működését. Ez a szöveti vérátáramlás javulásán keresztül a nyálkahártya regenerációjára is hatással van."
+  },
+  {
+    keywords: ["hajhullás","hajhullas","haj hull","kopasz","ritkuló haj","vékony haj","hajam"],
+    category: "haj", title: "Hajhullás", refs: [5,6,8],
+    response: `A menopauzális hajhullás az androgén/ösztrogén arány eltolódásából ered – a relatív androgén-dominancia rövidebb növekedési fázisra programozza át a szőrtüszőket.[5] Vas, D-vitamin, B12, cink és fehérjebevitel hiánya drámaian fokozza a hajhullást klimaxos nőknél – laborvizsgálattal érdemes ezeket ellenőrizni.[6] Topikális minoxidil nőknél klinikai vizsgálatokban igazoltan lassítja a hajhullást és fokozza az újranövést, ez az egyetlen erős bizonyítékkal rendelkező helyi kezelés.[5]`,
+    bridge: "A Cell Activator infravörös komponense NO-mediált értágulatot okoz a mikrokapillárisokban – a hajhagymák vérellátása közvetlenül meghatározza a szőrtüszők növekedési fázisának hosszát. A grafén fűtőelem kombinált infravörös és THz emissziója épp a felszíni szövetekben hat leghatékonyabban, ahol a hajhagymák elhelyezkednek."
+  },
+  {
+    keywords: ["bőr","bor","ráncosodás","rancosodas","ránc","petyhüdt","száraz bőr","rugalmasság","bőrápolás"],
+    category: "bőr", title: "Bőrváltozások és ráncosodás", refs: [5,8],
+    response: `A klimax után a bőr kollagéntartalma évente kb. 2%-kal csökken, a ceramidszint is esik – együtt okozva a szárazságot, petyhüdtséget és a ráncok gyorsabb mélyülését.[5] Ami bizonyítottan segít: napi SPF50 fényvédelem (az UV a fő külső ok), ceramid-tartalmú hidratálók a bőrgát helyreállításához, és C-vitamin szérum.[5] Kollagén-peptid kiegészítők napi 10g adagban kisebb RCT-kben javítottak a bőrfeszességen 3 hónapos szedés után.[5]`,
+    bridge: "A Wentong 1.0 vörös fénye (630–660 nm) a fotobiomoduláció révén stimulálja a fibroblasztokat – ezek a sejtek felelősek a kollagén és elasztin termeléséért. A Journal of Photochemistry áttekintéseiben a 630–670 nm-es vörös fény gyorsabb sebgyógyulást és csökkent gyulladásos markereket mutatott a bőrszövetben."
+  },
+  {
+    keywords: ["öregszem","oregszem","öregedés","oregedes","öregség","korosodás","nőiesség elveszítése","nőiség"],
+    category: "bőr", title: "Az öregedés érzete", refs: [5,8,21],
+    response: `Az öregedés érzete sokszor mélyebb identitásbeli változással jár, amit sok nő nagyon megterhelőnek él meg – ez teljesen normális reakció.[21] Ami aktívan segít: rendszeres mozgás lassítja a biológiai öregedést (telomerhossz-vizsgálatok igazolják),[8] antioxidáns-gazdag étrend védi a sejteket a gyulladástól,[8] és a bőr kollagénszintjének megőrzéséhez a UV-védelem bizonyítottan a legfontosabb tényező.[5]`,
+    bridge: "A Cell Activator THz és infravörös sugárzása, valamint a Wentong fotobiomodulációja (vörös fény, 630–660 nm) egymást kiegészítő mechanizmusokkal hat a sejtregenerációra: az infravörös a mikrokeringést és mitokondriális aktivitást, a vörös fény a fibroblasztok kollagéntermelését célozza. Két eszköz, amelyek a biológiai öregedés két különböző rétegét közelítik meg."
+  },
+  {
+    keywords: ["ízület","izulet","fájdalom","fajdalom","csont","osteopor","törés","törékeny","merevség","ízületi"],
+    category: "csont", title: "Ízületi fájdalom és csontegészség", refs: [6,8,15],
+    response: `Az ösztrogén csontprotektív hatásának elvesztése miatt 50 év feletti nők több mint 50%-ánál alakul ki osteopenia vagy osteoporosis.[6] Ami az EMAS és NAMS által is elsővonalbeli prevencióként ajánlott klimaxos nőknél: napi 1000–1200 mg kalcium, napi 800–1000 NE D-vitamin, és rendszeres súlyterheléses mozgás.[6] Az omega-3 zsírsavak gyulladáscsökkentő hatása ízületi panaszoknál szintén igazolt, és akupunktúra kisebb vizsgálatokban enyhe–közepes fájdalomcsökkentést mutatott.[15]`,
+    bridge: "A Cell Activator THz komponense állatkísérletekben gyulladáscsökkentő génexpressziós változásokat váltott ki (Titova et al., Scientific Reports, 2013) – ez a mechanizmus az ízületi gyulladásos folyamatokra is releváns. A kombinált infravörös hőterápia és THz expozíció épp a kötőszöveti sejtek szintjén hat, ahol a klimaxos ízületi panaszok erednek."
+  },
+  {
+    keywords: ["menstruáció","menstruacio","ciklus","vérzés","verzés","menzes","kimarad","rendszertelen"],
+    category: "általános", title: "Ciklusváltozások", refs: [7,13],
+    response: `A rendszertelen ciklus a perimenopauza egyik első jele, és akár 4–10 évig is tarthat a menopauza előtt.[13] Az ösztrogén és progeszteron ingadozása miatt a vérzések kiszámíthatatlanná válhatnak. Ha a vérzések nagyon erősek, nőgyógyászati kivizsgálás szükséges – az endometrium egészségét ellenőrizni kell.[7] Az erős vérzések miatti vashiány korrekciója különösen fontos, mert fokozza a fáradtságot.`,
+    bridge: "A Cell Activator infravörös és THz sugárzása a mikrokeringés javításán keresztül hat az endokrin szövetekre is – a Neuroscience Bulletin 2023-as közleménye dokumentálta, hogy THz sugárzás hormonális jelátviteli útvonalakat is befolyásolhat. Ez egy korai, de tudományosan megalapozott összefüggés."
+  },
+  {
+    keywords: ["puffadás","vízvisszatartás","ödéma","dagad","duzzanat"],
+    category: "általános", title: "Puffadás és vízvisszatartás", refs: [8,21],
+    response: `A klimax körüli puffadás és vízvisszatartás hátterében a progeszteron csökkenése áll – ez a hormon természetes vízhajtó hatású volt.[21] Ami segít: sóbevitel csökkentése, magnézium pótlása (B6-vitaminnal kombinálva), rendszeres mozgás, és elegendő folyadékfogyasztás – paradox módon több ivás segít a vízvisszatartáson.[8]`,
+    bridge: "A Wentong 1.0 FIR hőterápiája a talpkeringés fokozásán keresztül szisztémás értágulatot és nyirokáramlás-javulást vált ki – a lábfej termikus stimulálása Ko és Lee (2018, J. Physiological Anthropology) vizsgálatában szignifikánsan javította a periférián mért véráramlást. Ez a mechanizmus közvetlenül releváns a vízvisszatartás és ödéma kezelésében."
+  },
 ];
 
-// ── SEGÉDFÜGGVÉNYEK ──────────────────────────────────────────
-function findMatch(t1, t5) {
-  const c = ((t1||"")+" "+(t5||"")).toLowerCase();
-  let best = null, top = 0;
-  for (const e of KB) {
+// ============================================================
+// KÉRDÉSEK
+// ============================================================
+const questions = [
+  { id: "q1", label: "1. kérdés", question: "Mi a Te legnagyobb problémád, kihívásod, félelmed a nőiséged hanyatlásával kapcsolatban?", type: "textarea", placeholder: "Írd le szabadon, amit érezel..." },
+  { id: "q3", label: "2. kérdés", question: "Hány hónapja zavar ez a helyzet?", type: "number", placeholder: "pl. 12" },
+  { id: "q4", label: "3. kérdés", question: "Hányféle módszerrel próbálkoztál eddig?", type: "number", placeholder: "pl. 3" },
+  { id: "q5", label: "4. kérdés", question: "Mi az az egyetlen legkellemetlenebb panasz, ami elsőre eszedbe jut?", type: "text", placeholder: "pl. hőhullám, alvászavar..." },
+];
+
+// ============================================================
+// KULCSSZÓ-EGYEZÉS
+// ============================================================
+function findBestMatch(t1, t5) {
+  const c = ((t1 || "") + " " + (t5 || "")).toLowerCase();
+  let best = null, score = 0;
+  for (const e of knowledgeBase) {
     let s = 0;
     for (const kw of e.keywords) if (c.includes(kw)) s++;
-    if (s > top) { top = s; best = e; }
+    if (s > score) { score = s; best = e; }
   }
-  return best || KB[0];
+  return best || knowledgeBase[0];
 }
 
+// ============================================================
+// INLINE HIVATKOZÁS RENDERER  [n] → <sup><a>
+// ============================================================
 function CitedText({ text, onRef }) {
   const parts = text.split(/(\[\d+\])/g);
-  return React.createElement(React.Fragment, null,
-    ...parts.map((p, i) => {
-      const m = p.match(/^\[(\d+)\]$/);
-      if (m) {
-        const n = parseInt(m[1]);
-        onRef(n);
-        return React.createElement('sup', {key:i},
-          React.createElement('a', {href: REFS[n]?.url, target:"_blank", rel:"noreferrer"}, `[${n}]`)
-        );
-      }
-      return React.createElement('span', {key:i}, p);
-    })
+  return (
+    <>
+      {parts.map((p, i) => {
+        const m = p.match(/^\[(\d+)\]$/);
+        if (m) {
+          const n = parseInt(m[1]);
+          onRef(n);
+          return (
+            <sup key={i}>
+              <a href={REFS[n]?.url} target="_blank" rel="noreferrer"
+                style={{ color: "#c8785a", textDecoration: "none", fontSize: "10px", fontStyle: "normal" }}>
+                [{n}]
+              </a>
+            </sup>
+          );
+        }
+        return <span key={i}>{p}</span>;
+      })}
+    </>
   );
 }
 
-// ── KÉRDÉSEK ─────────────────────────────────────────────────
-const QUESTIONS = [
-  {id:"q1", label:"1. kérdés", q:"Mi a Te legnagyobb problémád, kihívásod, félelmed a nőiséged hanyatlásával kapcsolatban?", type:"textarea", ph:"Írd le szabadon, amit érezel..."},
-  {id:"q3", label:"2. kérdés", q:"Hány hónapja zavar ez a helyzet?", type:"number", ph:"pl. 12"},
-  {id:"q4", label:"3. kérdés", q:"Hányféle módszerrel próbálkoztál eddig?", type:"number", ph:"pl. 3"},
-  {id:"q5", label:"4. kérdés", q:"Mi az az egyetlen legkellemetlenebb panasz, ami elsőre eszedbe jut?", type:"text", ph:"pl. hőhullám, alvászavar..."},
-];
+// ============================================================
+// AI HÍVÁS
+// ============================================================
+async function buildResponse(answers) {
+  const match = findBestMatch(answers.q1, answers.q5);
+  const months = parseInt(answers.q3) || 0;
+  const methods = parseInt(answers.q4) || 0;
+  const monthsText = months > 0 ? `${months} hónapja` : "egy ideje";
+  const methodsText = methods === 0 ? "eddig még nem találtál igazán hatásos megoldást"
+    : methods === 1 ? "már próbálkoztál egy módszerrel"
+    : `${methods} módszert is kipróbáltál már`;
 
-// ── FŐ APP ───────────────────────────────────────────────────
-function App() {
-  const [step, setStep]       = useState(0);
-  const [answers, setAnswers] = useState({q1:"",q3:"",q4:"",q5:""});
-  const [current, setCurrent] = useState("");
-  const [result, setResult]   = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [dots, setDots]       = useState(1);
-  const usedRefs = useRef(new Set());
-
-  useEffect(() => {
-    if (loading) {
-      const iv = setInterval(() => setDots(d => d===3?1:d+1), 500);
-      return () => clearInterval(iv);
-    }
-  }, [loading]);
-
-  const totalQ = QUESTIONS.length;
-  const progress = step===0 ? 0 : Math.min(Math.round((step/totalQ)*100), 100);
-  const isLast = step === totalQ;
-  const curQ = step>=1 && step<=totalQ ? QUESTIONS[step-1] : null;
-
-  const next = () => {
-    if (step>=1 && step<=totalQ) {
-      setAnswers(prev => ({...prev, [QUESTIONS[step-1].id]: current}));
-    }
-    setCurrent("");
-    setStep(s => s+1);
-  };
-
-  const submit = async () => {
-    const fa = {...answers, [QUESTIONS[step-1].id]: current};
-    setAnswers(fa);
-    setLoading(true);
-    setStep(5);
-
-    const match = findMatch(fa.q1, fa.q5);
-    usedRefs.current = new Set(match.refs);
-
-    const months  = parseInt(fa.q3)||0;
-    const methods = parseInt(fa.q4)||0;
-    const mText   = months>0 ? `${months} hónapja` : "egy ideje";
-    const meText  = methods===0 ? "eddig még nem találtál igazán hatásos megoldást"
-                  : methods===1 ? "már próbálkoztál egy módszerrel"
-                  : `${methods} módszert is kipróbáltál már`;
-    try {
-      const resp = await fetch("https://api.anthropic.com/v1/messages", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({
-          model:"claude-sonnet-4-20250514",
-          max_tokens:900,
-          messages:[{role:"user", content:
-`Te egy empatikus, tudományosan megalapozott egészségtanácsadó vagy, aki KIZÁRÓLAG klimaxos nőkkel foglalkozik.
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 900,
+        messages: [{
+          role: "user",
+          content: `Te egy empatikus, tudományosan megalapozott egészségtanácsadó vagy, aki KIZÁRÓLAG klimaxos nőkkel foglalkozik.
 
 Egy nő töltötte ki a kérdőívünket:
-- Legnagyobb kihívása: "${fa.q1}"
-- Hány hónapja zavarja: ${mText}
-- Módszerek: ${meText}
-- Legkellemetlenebb panasz: "${fa.q5}"
+- Legnagyobb kihívása: "${answers.q1}"
+- Hány hónapja zavarja: ${monthsText}
+- Módszerek: ${methodsText}
+- Legkellemetlenebb panasz: "${answers.q5}"
 
 Releváns klinikai tudásbázis (KIZÁRÓLAG klimaxos nőkre vonatkozó vizsgálatokból):
-${match.text}
+${match.response}
 
 Írj személyes, meleg visszajelzést (4-5 mondat, folyó szöveg, NEM felsorolás):
-1. Empatikusan tükrözd vissza a helyzetét a konkrét tünete és időtartama alapján
+1. Empatikusan tükrözd vissza a helyzetét, a konkrét tünete és időtartama alapján
 2. Adj 2-3 konkrét tanácsot a fenti klimax-specifikus klinikai adatokból
 3. Hangsúlyozd természetesen, hogy ezek NEM általános tanácsok, hanem kimondottan klimaxos nőkre vonatkozó vizsgálatokból származnak
 4. Zárj kíváncsiságot ébresztő mondattal a sejtszintű megközelítésről
 
-Magyarul, meleg hangon. A szövegbe NE kerüljenek hivatkozási számok.`
-          }]
-        })
-      });
-      const data = await resp.json();
-      setResult({ text: data.content?.[0]?.text || match.text, match });
-    } catch {
-      setResult({ text: match.text, match });
+Magyarul, meleg hangon. Szövegbe NE kerüljenek számok vagy hivatkozások.`
+        }]
+      })
+    });
+    const data = await resp.json();
+    return { text: data.content?.[0]?.text || match.response, match };
+  } catch {
+    return { text: match.response, match };
+  }
+}
+
+// ============================================================
+// DEKORÁCIÓ
+// ============================================================
+function Flower({ size, rotate, opacity }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100"
+      style={{ transform: `rotate(${rotate}deg)`, opacity }}>
+      {[0,45,90,135].map(a => (
+        <ellipse key={a} cx="50" cy="50" rx="18" ry="36"
+          transform={`rotate(${a} 50 50)`} fill="#c8a4a4" />
+      ))}
+      <circle cx="50" cy="50" r="12" fill="#e8c5b0" />
+    </svg>
+  );
+}
+const FLOWERS = [
+  {top:"5%",left:"2%",size:60,rotate:15,opacity:0.12},
+  {top:"15%",right:"3%",size:80,rotate:-20,opacity:0.10},
+  {bottom:"10%",left:"5%",size:50,rotate:30,opacity:0.08},
+  {bottom:"20%",right:"2%",size:70,rotate:-10,opacity:0.11},
+];
+
+// ============================================================
+// APP
+// ============================================================
+export default function App() {
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState({q1:"",q3:"",q4:"",q5:""});
+  const [current, setCurrent] = useState("");
+  const [result, setResult] = useState(null);
+  const [animating, setAnimating] = useState(false);
+  const [dots, setDots] = useState(1);
+  const [usedRefs] = useState(() => new Set());
+
+  useEffect(() => {
+    if (step === 5) {
+      const iv = setInterval(() => setDots(d => d===3?1:d+1), 500);
+      return () => clearInterval(iv);
     }
-    setLoading(false);
+  }, [step]);
+
+  const totalQ = questions.length;
+  const progress = step===0 ? 0 : step>totalQ ? 100 : Math.round((step/totalQ)*100);
+
+  const goNext = () => {
+    setAnimating(true);
+    setTimeout(() => {
+      if (step>=1 && step<=totalQ) {
+        const q = questions[step-1];
+        setAnswers(prev => ({...prev, [q.id]: current}));
+        setCurrent("");
+      }
+      setStep(s => s+1);
+      setAnimating(false);
+    }, 300);
+  };
+
+  const handleSubmit = async () => {
+    const fa = {...answers, [questions[step-1].id]: current};
+    setAnswers(fa);
+    setStep(5);
+    const res = await buildResponse(fa);
+    usedRefs.clear();
+    res.match.refs.forEach(r => usedRefs.add(r));
+    setResult(res);
     setStep(6);
   };
 
-  // ── RENDER ────────────────────────────────────────────────
-  return (
-    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",position:"relative"}}>
+  const isLast = step === totalQ;
+  const currentQ = step>=1 && step<=totalQ ? questions[step-1] : null;
 
-      {/* Virág háttér */}
-      {[[5,2,60,15,0.12],[15,null,80,-20,0.10],[null,10,50,30,0.08],[null,20,70,-10,0.11]].map(([top,bot,sz,rot,op],i)=>(
-        <div key={i} style={{position:"fixed",top:top?`${top}%`:undefined,bottom:bot?`${bot}%`:undefined,[i%2===0?"left":"right"]:"3%",pointerEvents:"none",zIndex:0}}>
-          <svg width={sz} height={sz} viewBox="0 0 100 100" style={{transform:`rotate(${rot}deg)`,opacity:op}}>
-            {[0,45,90,135].map(a=><ellipse key={a} cx="50" cy="50" rx="18" ry="36" transform={`rotate(${a} 50 50)`} fill="#c8a4a4"/>)}
-            <circle cx="50" cy="50" r="12" fill="#e8c5b0"/>
-          </svg>
+  const addRef = (n) => usedRefs.add(n);
+
+  const S = {
+    app: {minHeight:"100vh",background:"linear-gradient(160deg,#f9f0eb 0%,#f5e6dc 40%,#ede0d4 100%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",fontFamily:"'Georgia','Times New Roman',serif",position:"relative",overflow:"hidden",padding:"20px"},
+    card: {background:"rgba(255,255,255,0.75)",backdropFilter:"blur(16px)",borderRadius:"28px",padding:"48px 44px",maxWidth:"600px",width:"100%",boxShadow:"0 8px 48px rgba(180,120,100,0.13)",border:"1px solid rgba(210,170,150,0.25)",position:"relative",zIndex:2,transition:"opacity 0.3s,transform 0.3s",opacity:animating?0:1,transform:animating?"translateY(10px)":"translateY(0)"},
+    logoText: {fontSize:"11px",letterSpacing:"4px",color:"#b08878",textTransform:"uppercase",textAlign:"center",marginBottom:"8px"},
+    divider: {width:"40px",height:"1px",background:"linear-gradient(90deg,transparent,#c8a090,transparent)",margin:"0 auto 32px"},
+    progressBar: {height:"3px",background:"rgba(200,160,140,0.2)",borderRadius:"2px",marginBottom:"32px",overflow:"hidden"},
+    progressFill: {height:"100%",background:"linear-gradient(90deg,#d4917a,#c07060)",borderRadius:"2px",transition:"width 0.5s ease",width:`${progress}%`},
+    label: {fontSize:"11px",letterSpacing:"3px",color:"#b08878",textTransform:"uppercase",marginBottom:"16px",display:"block"},
+    title: {fontSize:"26px",color:"#5c3a2e",fontWeight:"normal",lineHeight:1.4,marginBottom:"10px",fontStyle:"italic"},
+    subtitle: {fontSize:"14px",color:"#9a7060",lineHeight:1.8,marginBottom:"36px"},
+    question: {fontSize:"18px",color:"#5c3a2e",lineHeight:1.6,marginBottom:"24px",fontStyle:"italic"},
+    textarea: {width:"100%",minHeight:"110px",padding:"16px",border:"1px solid rgba(200,160,140,0.4)",borderRadius:"14px",background:"rgba(255,255,255,0.6)",fontSize:"15px",color:"#5c3a2e",fontFamily:"'Georgia',serif",resize:"vertical",outline:"none",lineHeight:1.6,boxSizing:"border-box"},
+    input: {width:"100%",padding:"14px 16px",border:"1px solid rgba(200,160,140,0.4)",borderRadius:"14px",background:"rgba(255,255,255,0.6)",fontSize:"15px",color:"#5c3a2e",fontFamily:"'Georgia',serif",outline:"none",boxSizing:"border-box"},
+    btn: {marginTop:"28px",width:"100%",padding:"16px",background:"linear-gradient(135deg,#c8785a,#b06048)",color:"white",border:"none",borderRadius:"50px",fontSize:"14px",letterSpacing:"2px",textTransform:"uppercase",cursor:"pointer",fontFamily:"'Georgia',serif",boxShadow:"0 4px 20px rgba(180,90,70,0.25)"},
+    badge: {display:"inline-block",padding:"4px 14px",background:"rgba(200,120,90,0.1)",borderRadius:"20px",fontSize:"11px",letterSpacing:"2px",color:"#b08878",textTransform:"uppercase",marginBottom:"18px"},
+    aiBox: {fontSize:"15px",color:"#5c3a2e",lineHeight:2,background:"rgba(250,240,235,0.7)",padding:"22px",borderRadius:"16px",border:"1px solid rgba(200,160,140,0.2)",marginBottom:"16px"},
+    kbBox: {fontSize:"13px",color:"#7a5545",lineHeight:2,background:"rgba(240,228,220,0.5)",padding:"18px 22px",borderRadius:"14px",border:"1px dashed rgba(200,150,120,0.35)",marginBottom:"16px"},
+    kbLabel: {fontSize:"10px",letterSpacing:"3px",color:"#b08878",textTransform:"uppercase",marginBottom:"10px",display:"block"},
+    bridgeBox: {padding:"16px 20px",borderLeft:"3px solid #c8785a",background:"rgba(200,120,90,0.06)",borderRadius:"0 12px 12px 0",fontSize:"13px",color:"#9a6050",fontStyle:"italic",lineHeight:1.8,marginBottom:"24px"},
+    refsBox: {marginTop:"8px",paddingTop:"20px",borderTop:"1px solid rgba(200,160,140,0.25)"},
+    refsTitle: {fontSize:"10px",letterSpacing:"3px",color:"#b08878",textTransform:"uppercase",marginBottom:"12px"},
+    refItem: {fontSize:"11px",color:"#a07060",lineHeight:1.9,display:"flex",gap:"6px"},
+    refNum: {color:"#c8785a",flexShrink:0},
+    refLink: {color:"#c8785a",textDecoration:"none"},
+  };
+
+  return (
+    <div style={S.app}>
+      {FLOWERS.map((f,i) => (
+        <div key={i} style={{position:"absolute",pointerEvents:"none",...f}}>
+          <Flower size={f.size} rotate={f.rotate} opacity={f.opacity} />
         </div>
       ))}
 
-      <div className="card fade-up">
-        <div className="logo-text">Klimax Felmérés</div>
-        <div className="divider"></div>
+      <div style={S.card}>
+        <div style={S.logoText}>Klimax Felmérés</div>
+        <div style={S.divider} />
 
         {step>0 && step<=totalQ && (
-          <div className="progress-bar">
-            <div className="progress-fill" style={{width:`${progress}%`}}></div>
-          </div>
+          <div style={S.progressBar}><div style={S.progressFill} /></div>
         )}
 
-        {/* INTRO */}
         {step===0 && (
-          <div className="fade-up">
-            <div className="card-title">Kedves Hölgyem,</div>
-            <p className="card-subtitle">
+          <>
+            <div style={S.title}>Kedves Hölgyem,</div>
+            <p style={S.subtitle}>
               Ez a rövid felmérés segít megérteni, miben tudunk a legjobban segíteni Neked a klimax tünetei kapcsán.
-              <br/><br/>
+              <br /><br />
               4 kérdés után <strong>személyre szabott, tudományos alapú visszajelzést</strong> kapsz – kifejezetten klimaxos nőkre vonatkozó klinikai vizsgálatokból.
             </p>
-            <button className="btn-primary" onClick={next}>Kezdjük el →</button>
-          </div>
+            <button style={S.btn} onClick={goNext}>Kezdjük el →</button>
+          </>
         )}
 
-        {/* KÉRDÉSEK */}
-        {step>=1 && step<=totalQ && curQ && (
-          <div className="fade-up">
-            <span className="section-label">{curQ.label}</span>
-            <div className="question-text">{curQ.q}</div>
-            {curQ.type==="textarea"
-              ? <textarea placeholder={curQ.ph} value={current} onChange={e=>setCurrent(e.target.value)} rows="4"/>
-              : <input type={curQ.type} placeholder={curQ.ph} value={current} onChange={e=>setCurrent(e.target.value)}/>
+        {step>=1 && step<=totalQ && currentQ && (
+          <>
+            <span style={S.label}>{currentQ.label}</span>
+            <div style={S.question}>{currentQ.question}</div>
+            {currentQ.type==="textarea"
+              ? <textarea style={S.textarea} placeholder={currentQ.placeholder} value={current} onChange={e=>setCurrent(e.target.value)} />
+              : <input style={S.input} type={currentQ.type} placeholder={currentQ.placeholder} value={current} onChange={e=>setCurrent(e.target.value)} />
             }
-            <button className="btn-primary" onClick={isLast?submit:next} disabled={!current.trim()}>
+            <button style={{...S.btn, opacity:current.trim()?1:0.5}}
+              onClick={isLast?handleSubmit:goNext} disabled={!current.trim()}>
               {isLast ? "Visszajelzést kérek ✦" : "Következő →"}
             </button>
+          </>
+        )}
+
+        {step===5 && (
+          <div style={{textAlign:"center",padding:"30px 0"}}>
+            <div style={{fontSize:"36px",marginBottom:"20px"}}>✦</div>
+            <div style={{fontSize:"18px",color:"#8a5a4a",fontStyle:"italic"}}>
+              Személyes visszajelzésedet készítem{".".repeat(dots)}
+            </div>
           </div>
         )}
 
-        {/* TÖLTÉS */}
-        {loading && (
-          <div className="loading-wrap fade-up">
-            <div className="loading-icon">✦</div>
-            <div className="loading-text">Személyes visszajelzésedet készítem{".".repeat(dots)}</div>
-          </div>
-        )}
-
-        {/* EREDMÉNY */}
         {step===6 && result && (
-          <div className="fade-up">
-            <span className="section-label">Személyes visszajelzésed</span>
-            <div className="badge">{result.match.title}</div>
+          <>
+            <span style={S.label}>Személyes visszajelzésed</span>
+            <div style={S.badge}>{result.match.title}</div>
 
-            <div className="ai-box">{result.text}</div>
+            {/* AI személyes válasz */}
+            <div style={S.aiBox}>{result.text}</div>
 
-            <div className="kb-box">
-              <span className="kb-label">📋 Tudományos háttér – kizárólag klimaxos nőkre vonatkozó klinikai adatok</span>
-              <CitedText text={result.match.text} onRef={n => usedRefs.current.add(n)} />
+            {/* Tudományos háttér – hivatkozásokkal */}
+            <div style={S.kbBox}>
+              <span style={S.kbLabel}>
+                📋 Tudományos háttér – kizárólag klimaxos nőkre vonatkozó klinikai adatok
+              </span>
+              <CitedText text={result.match.response} onRef={addRef} />
             </div>
 
-            <div className="bridge-box">✦ {result.match.bridge}</div>
+            {/* Híd-mondat */}
+            <div style={S.bridgeBox}>✦ {result.match.bridge}</div>
 
-            <div className="refs-box">
-              <div className="refs-title">Felhasznált klinikai források</div>
-              {[...usedRefs.current].sort((a,b)=>a-b).map(n => REFS[n] && (
-                <div key={n} className="ref-item">
-                  <span className="ref-num">[{n}]</span>
-                  <a href={REFS[n].url} target="_blank" rel="noreferrer">{REFS[n].label}</a>
+            {/* Irodalomjegyzék */}
+            <div style={S.refsBox}>
+              <div style={S.refsTitle}>Felhasznált klinikai források</div>
+              {[...usedRefs].sort((a,b)=>a-b).map(n => REFS[n] && (
+                <div key={n} style={S.refItem}>
+                  <span style={S.refNum}>[{n}]</span>
+                  <a href={REFS[n].url} target="_blank" rel="noreferrer" style={S.refLink}>
+                    {REFS[n].label}
+                  </a>
                 </div>
               ))}
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>
   );
 }
-
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
-</script>
-</body>
-</html>
